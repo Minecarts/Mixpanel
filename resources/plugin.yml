@@ -1,0 +1,8 @@
+name: Mixpanel
+description: Event tracking with Mixpanel.com
+author: megabytes
+website: http://minecarts.com/
+
+main: com.minecarts.mixpanel.Plugin
+version: ${pom.version}
+load: STARTUP
