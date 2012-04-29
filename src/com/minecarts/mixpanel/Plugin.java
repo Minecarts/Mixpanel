@@ -43,40 +43,64 @@ public class Plugin extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void serverPing(final ServerListPingEvent event) {
         events.track("Server ping", new HashMap<String, Object>() {{
+            // Mixpanel properties
             put("ip", event.getAddress().getHostAddress());
+            put("mp_name_tag", event.getAddress().getHostAddress());
+            // Custom properties
+            put("IP", event.getAddress().getHostAddress());
+            put("Online", event.getNumPlayers());
+            put("Slots", event.getMaxPlayers());
+            put("MOTD", event.getMotd());
         }});
     }
     
     @EventHandler(priority = EventPriority.MONITOR)
     public void playerLogin(final PlayerLoginEvent event) {
         events.track("Player login", new HashMap<String, Object>() {{
-            put("player", event.getPlayer().getName());
-            put("ip", event.getAddress().getHostAddress());
-            put("session", Sessions.getSession(event.getPlayer()));
+            // Mixpanel properties
             put("distinct_id", Sessions.getSession(event.getPlayer()));
-            put("hostname", event.getHostname());
-            put("result", event.getResult().toString());
-            put("message", event.getKickMessage());
+            put("ip", event.getAddress().getHostAddress());
+            put("mp_name_tag", event.getAddress().getHostAddress());
+            // Custom properties
+            put("Player", event.getPlayer().getName());
+            put("World", event.getPlayer().getWorld().getName());
+            put("IP", event.getAddress().getHostAddress());
+            put("Session", Sessions.getSession(event.getPlayer()));
+            put("Hostname", event.getHostname());
+            put("Result", event.getResult().toString());
+            if(event.getResult() != PlayerLoginEvent.Result.ALLOWED) {
+                put("Kick message", event.getKickMessage());
+            }
         }});
     }
     
     @EventHandler
     public void playerJoin(final PlayerJoinEvent event) {
         events.track("Player join", new HashMap<String, Object>() {{
-            put("player", event.getPlayer().getName());
-            put("ip", event.getPlayer().getAddress().getAddress().getHostAddress());
-            put("session", Sessions.getSession(event.getPlayer()));
+            // Mixpanel properties
             put("distinct_id", Sessions.getSession(event.getPlayer()));
+            put("ip", event.getPlayer().getAddress().getAddress().getHostAddress());
+            put("mp_name_tag", event.getPlayer().getAddress().getAddress().getHostAddress());
+            // Custom properties
+            put("Player", event.getPlayer().getName());
+            put("World", event.getPlayer().getWorld().getName());
+            put("IP", event.getPlayer().getAddress().getAddress().getHostAddress());
+            put("Session", Sessions.getSession(event.getPlayer()));
         }});
     }
     
     @EventHandler
     public void playerQuit(final PlayerQuitEvent event) {
         events.track("Player quit", new HashMap<String, Object>() {{
-            put("player", event.getPlayer().getName());
-            put("ip", event.getPlayer().getAddress().getAddress().getHostAddress());
-            put("session", Sessions.getSession(event.getPlayer()));
+            // Mixpanel properties
             put("distinct_id", Sessions.getSession(event.getPlayer()));
+            put("ip", event.getPlayer().getAddress().getAddress().getHostAddress());
+            put("mp_name_tag", event.getPlayer().getAddress().getAddress().getHostAddress());
+            // Custom properties
+            put("Player", event.getPlayer().getName());
+            put("World", event.getPlayer().getWorld().getName());
+            put("IP", event.getPlayer().getAddress().getAddress().getHostAddress());
+            put("Session", Sessions.getSession(event.getPlayer()));
         }});
     }
     
