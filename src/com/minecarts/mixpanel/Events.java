@@ -22,6 +22,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONAware;
+import org.json.simple.parser.JSONParser;
 
 import org.bukkit.entity.Player;
 import org.bukkit.Location;
@@ -29,7 +30,8 @@ import org.bukkit.Location;
 
 public class Events {
     protected static final Logger logger = Logger.getLogger(Events.class.getCanonicalName());
-    protected static final String endpoint = "http://api.mixpanel.com/track";
+    protected static final String endpoint = "http://api.mixpanel.com/track?test=1";
+    protected static final JSONParser parser = new JSONParser();
     
     protected final String token;
     protected final URL url;
@@ -41,7 +43,7 @@ public class Events {
         this.token = token;
         
         try {
-            this.url = new URL(String.format(endpoint, token));
+            this.url = new URL(endpoint);
         }
         catch(MalformedURLException e) {
             throw new IllegalArgumentException(e.getMessage());
@@ -98,16 +100,15 @@ public class Events {
                         
                         int responseCode = conn.getResponseCode();
                         String response = StringUtils.join(lines, "\n");
+                        
+                        logger.fine(String.format("Sent JSON\n%s", json));
+                        logger.fine(String.format("Got response (%d)\n%s", responseCode, response));
 
-
-                        if(responseCode == 200 && response.equals("1")) {
-                            logger.info(String.format("Got response code: %d", responseCode));
+                        if(responseCode == 200 && response.contains("\"status\": 1")) {
                             logger.info(String.format("Successfully sent %d events", batch.size()));
                         }
                         else {
-                            logger.warning(String.format("Got response code: %d", responseCode));
-                            logger.warning(response);
-                            
+                            logger.warning("Failed response? Requeueing...");
                             // requeue events
                             synchronized(events) {
                                 events.addAll(batch);

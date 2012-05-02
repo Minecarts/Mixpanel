@@ -60,9 +60,9 @@ public class Plugin extends JavaPlugin implements Listener {
     public void playerLogin(final PlayerLoginEvent event) {
         events.track("Player login", new HashMap<String, Object>() {{
             // Mixpanel properties
-            put("distinct_id", Sessions.getSession(event.getPlayer()));
+            put("distinct_id", Sessions.getSession(event.getPlayer()).getId());
             put("ip", event.getAddress().getHostAddress());
-            put("mp_name_tag", event.getAddress().getHostAddress());
+            put("mp_name_tag", event.getPlayer().getName());
             // Custom properties
             put("Player", event.getPlayer().getName());
             put("World", event.getPlayer().getWorld().getName());
@@ -80,9 +80,9 @@ public class Plugin extends JavaPlugin implements Listener {
     public void playerJoin(final PlayerJoinEvent event) {
         events.track("Player join", new HashMap<String, Object>() {{
             // Mixpanel properties
-            put("distinct_id", Sessions.getSession(event.getPlayer()));
+            put("distinct_id", Sessions.getSession(event.getPlayer()).getId());
             put("ip", event.getPlayer().getAddress().getAddress().getHostAddress());
-            put("mp_name_tag", event.getPlayer().getAddress().getAddress().getHostAddress());
+            put("mp_name_tag", event.getPlayer().getName());
             // Custom properties
             put("Player", event.getPlayer().getName());
             put("World", event.getPlayer().getWorld().getName());
@@ -95,9 +95,9 @@ public class Plugin extends JavaPlugin implements Listener {
     public void playerQuit(final PlayerQuitEvent event) {
         events.track("Player quit", new HashMap<String, Object>() {{
             // Mixpanel properties
-            put("distinct_id", Sessions.getSession(event.getPlayer()));
+            put("distinct_id", Sessions.getSession(event.getPlayer()).getId());
             put("ip", event.getPlayer().getAddress().getAddress().getHostAddress());
-            put("mp_name_tag", event.getPlayer().getAddress().getAddress().getHostAddress());
+            put("mp_name_tag", event.getPlayer().getName());
             // Custom properties
             put("Player", event.getPlayer().getName());
             put("World", event.getPlayer().getWorld().getName());
