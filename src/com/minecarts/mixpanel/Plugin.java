@@ -6,6 +6,8 @@ import java.text.MessageFormat;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.bukkit.Bukkit;
+
 import org.bukkit.plugin.java.JavaPlugin;
 
 import org.bukkit.event.EventHandler;
@@ -30,12 +32,12 @@ public class Plugin extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         // start sessions for online players
-        for(Player player : getServer().getOnlinePlayers()) {
+        for(Player player : Bukkit.getOnlinePlayers()) {
             Sessions.getSession(player, true);
         }
         
-        getServer().getPluginManager().registerEvents(Sessions.getInstance(), this);
-        getServer().getPluginManager().registerEvents(this, this);
+        Bukkit.getPluginManager().registerEvents(Sessions.getInstance(), this);
+        Bukkit.getPluginManager().registerEvents(this, this);
     }
     
     
@@ -65,7 +67,7 @@ public class Plugin extends JavaPlugin implements Listener {
             put("Player", event.getPlayer().getName());
             put("World", event.getPlayer().getWorld().getName());
             put("IP", event.getAddress().getHostAddress());
-            put("Session", Sessions.getSession(event.getPlayer()));
+            put("Session", Sessions.getSession(event.getPlayer()).getId());
             put("Hostname", event.getHostname());
             put("Result", event.getResult().toString());
             if(event.getResult() != PlayerLoginEvent.Result.ALLOWED) {
@@ -85,7 +87,7 @@ public class Plugin extends JavaPlugin implements Listener {
             put("Player", event.getPlayer().getName());
             put("World", event.getPlayer().getWorld().getName());
             put("IP", event.getPlayer().getAddress().getAddress().getHostAddress());
-            put("Session", Sessions.getSession(event.getPlayer()));
+            put("Session", Sessions.getSession(event.getPlayer()).getId());
         }});
     }
     
@@ -100,7 +102,8 @@ public class Plugin extends JavaPlugin implements Listener {
             put("Player", event.getPlayer().getName());
             put("World", event.getPlayer().getWorld().getName());
             put("IP", event.getPlayer().getAddress().getAddress().getHostAddress());
-            put("Session", Sessions.getSession(event.getPlayer()));
+            put("Session", Sessions.getSession(event.getPlayer()).getId());
+            put("Session Duration", Sessions.getSession(event.getPlayer()).elapsed());
         }});
     }
     
