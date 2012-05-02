@@ -28,7 +28,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.Location;
 
 
-public class Events {
+public class Events implements Runnable  {
     protected static final Logger logger = Logger.getLogger(Events.class.getCanonicalName());
     protected static final String endpoint = "http://api.mixpanel.com/track?test=1";
     protected static final JSONParser parser = new JSONParser();
@@ -48,92 +48,6 @@ public class Events {
         catch(MalformedURLException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
-        
-        
-        new Thread() {
-            public void run() {
-                while(true) {
-                    try {
-                        sleep(1000);
-                    }
-                    catch(InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    
-                    List batch;
-                    synchronized(events) {
-                        if(events.isEmpty()) {
-                            continue;
-                        }
-                        else {
-                            batch = new ArrayList(events.subList(0, Math.min(50, events.size())));
-                            events.removeAll(batch);
-                        }
-                    }
-                    
-                    Date start = new Date();
-                    String json = JSONArray.toJSONString(batch);
-                    String encoded = Base64.encodeBase64String(json.getBytes());
-                    logger.info(String.format("\nJSON:\n%s\n\nBase64:\n%s\n", json, encoded));
-                    
-                    HttpURLConnection conn = null;
-                    try {
-                        conn = (HttpURLConnection) url.openConnection();
-                        conn.setRequestMethod("POST");
-                        conn.setRequestProperty("Content-Type", "application/json");
-
-                        conn.setDoOutput(true);
-                        conn.setDoInput(true);
-                        
-                        OutputStreamWriter or = new OutputStreamWriter(conn.getOutputStream());
-                        or.write(String.format("data=%s", encoded));
-                        or.flush();
-                        or.close();
-
-                        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getResponseCode() >= 400 ? conn.getErrorStream() : conn.getInputStream()));
-                        String line;
-                        List<String> lines = new ArrayList<String>();
-                        while((line = br.readLine()) != null) {
-                            lines.add(line);
-                        }
-                        br.close();
-                        
-                        int responseCode = conn.getResponseCode();
-                        String response = StringUtils.join(lines, "\n");
-                        
-                        logger.fine(String.format("Sent JSON\n%s", json));
-                        logger.fine(String.format("Got response (%d)\n%s", responseCode, response));
-
-                        if(responseCode == 200 && response.contains("\"status\": 1")) {
-                            logger.info(String.format("Successfully sent %d events", batch.size()));
-                        }
-                        else {
-                            logger.warning("Failed response? Requeueing...");
-                            // requeue events
-                            synchronized(events) {
-                                events.addAll(batch);
-                            }
-                        }
-                    }
-                    catch(IOException e) {
-                        logger.warning("Connection or stream failure, events data was not sent to API, requeueing...");
-                        e.printStackTrace();
-                        
-                        // requeue events
-                        synchronized(events) {
-                            events.addAll(batch);
-                        }
-                    }
-                    finally {
-                        if(conn != null) {
-                            conn.disconnect();
-                        }
-                    }
-
-                    logger.info(String.format("Response took %d ms", new Date().getTime() - start.getTime()));
-                }
-            }
-        }.start();
     }
     
     
@@ -152,5 +66,78 @@ public class Events {
     }
     
     
+        
+    public void run() {
+        List batch;
+        synchronized(events) {
+            if(events.isEmpty()) {
+                return;
+            }
+            else {
+                batch = new ArrayList(events.subList(0, Math.min(50, events.size())));
+                events.removeAll(batch);
+            }
+        }
+
+        Date start = new Date();
+        String json = JSONArray.toJSONString(batch);
+        String encoded = Base64.encodeBase64String(json.getBytes());
+        logger.finer(String.format("\nJSON:\n%s\n\nBase64:\n%s\n", json, encoded));
+
+        HttpURLConnection conn = null;
+        try {
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+
+            OutputStreamWriter or = new OutputStreamWriter(conn.getOutputStream());
+            or.write(String.format("data=%s", encoded));
+            or.flush();
+            or.close();
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getResponseCode() >= 400 ? conn.getErrorStream() : conn.getInputStream()));
+            String line;
+            List<String> lines = new ArrayList<String>();
+            while((line = br.readLine()) != null) {
+                lines.add(line);
+            }
+            br.close();
+
+            int responseCode = conn.getResponseCode();
+            String response = StringUtils.join(lines, "\n");
+
+            logger.fine(String.format("Got response (%d)\n%s", responseCode, response));
+
+            if(responseCode == 200 && response.contains("\"status\": 1")) {
+                logger.info(String.format("Successfully sent %d events", batch.size()));
+            }
+            else {
+                logger.warning("Failed response? Requeueing...");
+                // requeue events
+                synchronized(events) {
+                    events.addAll(batch);
+                }
+            }
+        }
+        catch(IOException e) {
+            logger.warning("Connection or stream failure, events data was not sent to API, requeueing...");
+            e.printStackTrace();
+
+            // requeue events
+            synchronized(events) {
+                events.addAll(batch);
+            }
+        }
+        finally {
+            if(conn != null) {
+                conn.disconnect();
+            }
+        }
+
+        logger.info(String.format("Response took %d ms", new Date().getTime() - start.getTime()));
+    }
     
 }

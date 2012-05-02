@@ -27,10 +27,13 @@ import org.bukkit.entity.Creature;
 
 
 public class Plugin extends JavaPlugin implements Listener {
-    protected final Events events = new Events("d8bae573e57b9ef7bcb2468efcfee734");
+    protected Events events;
     
     @Override
     public void onEnable() {
+        events = new Events("d8bae573e57b9ef7bcb2468efcfee734");
+        Bukkit.getScheduler().scheduleAsyncRepeatingTask(this, events, 20, 20);
+        
         // start sessions for online players
         for(Player player : Bukkit.getOnlinePlayers()) {
             Sessions.getSession(player, true);
@@ -39,7 +42,6 @@ public class Plugin extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(Sessions.getInstance(), this);
         Bukkit.getPluginManager().registerEvents(this, this);
     }
-    
     
     
     @EventHandler(priority = EventPriority.MONITOR)
