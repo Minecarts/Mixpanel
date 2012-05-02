@@ -111,11 +111,11 @@ public class Events implements Runnable  {
 
             logger.fine(String.format("Got response (%d)\n%s", responseCode, response));
 
-            if(responseCode == 200 && response.contains("\"status\": 1")) {
+            if(responseCode == 200 && response.equals("1")) {
                 logger.info(String.format("Successfully sent %d events", batch.size()));
             }
             else {
-                logger.warning("Failed response? Requeueing...");
+                logger.warning(String.format("Failed response? Requeueing %d events...", batch.size()));
                 // requeue events
                 synchronized(events) {
                     events.addAll(batch);
@@ -123,7 +123,7 @@ public class Events implements Runnable  {
             }
         }
         catch(IOException e) {
-            logger.warning("Connection or stream failure, events data was not sent to API, requeueing...");
+            logger.warning(String.format("Connection or stream failure, requeueing %d events...", batch.size()));
             e.printStackTrace();
 
             // requeue events
@@ -137,7 +137,7 @@ public class Events implements Runnable  {
             }
         }
 
-        logger.info(String.format("Response took %d ms", new Date().getTime() - start.getTime()));
+        logger.fine(String.format("Response took %d ms", new Date().getTime() - start.getTime()));
     }
     
 }
